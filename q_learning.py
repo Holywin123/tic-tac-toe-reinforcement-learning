@@ -1,4 +1,3 @@
-
 import random
 
 
@@ -9,7 +8,7 @@ class QLearningAgent:
         learning_rate=0.1,
         discount_factor=0.9,
         exploration_rate=1.0,
-        exploration_decay=0.9995
+        exploration_decay=0.9999
     ):
 
         self.q_table = {}
@@ -26,15 +25,22 @@ class QLearningAgent:
 
         return self.q_table[state]
 
-    def choose_action(self, state, available_actions):
-
-        q_values = self.get_q_values(state)
+    def choose_action(
+        self,
+        state,
+        available_actions
+    ):
 
         # Exploration
         if random.random() < self.exploration_rate:
-            return random.choice(available_actions)
+
+            return random.choice(
+                available_actions
+            )
 
         # Exploitation
+        q_values = self.get_q_values(state)
+
         max_q = max(
             q_values[action]
             for action in available_actions
@@ -46,7 +52,6 @@ class QLearningAgent:
             if q_values[action] == max_q
         ]
 
-        # Randomly choose between equally good actions
         return random.choice(best_actions)
 
     def update(
@@ -55,39 +60,42 @@ class QLearningAgent:
         action,
         reward,
         next_state,
-        available_actions
+        next_actions
     ):
 
         q_values = self.get_q_values(state)
 
         current_q = q_values[action]
 
-        if available_actions:
+        if next_actions:
 
             next_q = max(
-                self.get_q_values(next_state)[action]
-                for action in available_actions
+                self.get_q_values(next_state)[a]
+                for a in next_actions
             )
 
         else:
+
             next_q = 0
 
-        new_q = current_q + self.learning_rate * (
+        target = (
             reward
             + self.discount_factor * next_q
-            - current_q
         )
 
-        q_values[action] = new_q
+        q_values[action] = (
+            current_q
+            + self.learning_rate
+            * (target - current_q)
+        )
 
     def decay_exploration(self):
 
-        self.exploration_rate *= self.exploration_decay
-
-        # Do not allow exploration to become zero
-        self.exploration_rate = max(
-            0.05,
-            self.exploration_rate
+        self.exploration_rate *= (
+            self.exploration_decay
         )
 
-
+        self.exploration_rate = max(
+            0.01,
+            self.exploration_rate
+        )

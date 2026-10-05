@@ -1,13 +1,16 @@
-
 from game import TicTacToe
 from q_learning import QLearningAgent
 import random
 import pickle
 
 
-def train_agent(episodes=100000):
+def train_agent(episodes=200000):
 
-    agent = QLearningAgent()
+    # Agent 1 learns to play X
+    agent_x = QLearningAgent()
+
+    # Agent 2 learns to play O
+    agent_o = QLearningAgent()
 
     for episode in range(episodes):
 
@@ -15,116 +18,150 @@ def train_agent(episodes=100000):
 
         state = game.reset()
 
+        # Randomly decide who starts
+        current_player = random.choice(
+            ["X", "O"]
+        )
+
         while True:
 
-            # -------------------------
-            # AI MOVE
-            # -------------------------
+            # =========================================
+            # X PLAYER
+            # =========================================
 
-            available = game.available_actions()
+            if current_player == "X":
 
-            action = agent.choose_action(
-                state,
-                available
-            )
+                available = game.available_actions()
 
-            game.make_move(
-                action,
-                "O"
-            )
-
-            result = game.check_winner()
-
-            # AI wins
-            if result == "O":
-
-                agent.update(
+                action = agent_x.choose_action(
                     state,
-                    action,
-                    10,
-                    game.get_state(),
-                    []
+                    available
                 )
 
-                break
-
-            # Draw
-            if result == "Draw":
-
-                agent.update(
-                    state,
+                game.make_move(
                     action,
-                    5,
-                    game.get_state(),
-                    []
+                    "X"
                 )
 
-                break
+                result = game.check_winner()
 
-            # -------------------------
-            # RANDOM OPPONENT MOVE
-            # -------------------------
+                # X wins
+                if result == "X":
 
-            opponent_actions = game.available_actions()
+                    agent_x.update(
+                        state,
+                        action,
+                        10,
+                        game.get_state(),
+                        []
+                    )
 
-            opponent_action = random.choice(
-                opponent_actions
-            )
+                    break
 
-            game.make_move(
-                opponent_action,
-                "X"
-            )
+                # Draw
+                if result == "Draw":
 
-            result = game.check_winner()
+                    agent_x.update(
+                        state,
+                        action,
+                        5,
+                        game.get_state(),
+                        []
+                    )
 
-            # Opponent wins
-            if result == "X":
+                    break
 
-                agent.update(
+                # Change to O
+                next_state = game.get_state()
+
+                next_actions = game.available_actions()
+
+                agent_x.update(
                     state,
                     action,
-                    -10,
-                    game.get_state(),
-                    []
+                    0,
+                    next_state,
+                    next_actions
                 )
 
-                break
+                state = next_state
 
-            # Draw
-            if result == "Draw":
+                current_player = "O"
 
-                agent.update(
+            # =========================================
+            # O PLAYER
+            # =========================================
+
+            else:
+
+                available = game.available_actions()
+
+                action = agent_o.choose_action(
+                    state,
+                    available
+                )
+
+                game.make_move(
+                    action,
+                    "O"
+                )
+
+                result = game.check_winner()
+
+                # O wins
+                if result == "O":
+
+                    agent_o.update(
+                        state,
+                        action,
+                        10,
+                        game.get_state(),
+                        []
+                    )
+
+                    break
+
+                # Draw
+                if result == "Draw":
+
+                    agent_o.update(
+                        state,
+                        action,
+                        5,
+                        game.get_state(),
+                        []
+                    )
+
+                    break
+
+                # Change to X
+                next_state = game.get_state()
+
+                next_actions = game.available_actions()
+
+                agent_o.update(
                     state,
                     action,
-                    5,
-                    game.get_state(),
-                    []
+                    0,
+                    next_state,
+                    next_actions
                 )
 
-                break
+                state = next_state
 
-            # -------------------------
-            # CONTINUE LEARNING
-            # -------------------------
+                current_player = "X"
 
-            next_state = game.get_state()
+        # =============================================
+        # DECAY EXPLORATION
+        # =============================================
 
-            next_available = game.available_actions()
+        agent_x.decay_exploration()
+        agent_o.decay_exploration()
 
-            agent.update(
-                state,
-                action,
-                0,
-                next_state,
-                next_available
-            )
+        # =============================================
+        # TRAINING PROGRESS
+        # =============================================
 
-            state = next_state
-
-        agent.decay_exploration()
-
-        # Show progress
         if (episode + 1) % 10000 == 0:
 
             print(
@@ -132,28 +169,35 @@ def train_agent(episodes=100000):
                 f"{episode + 1}/{episodes}"
             )
 
-    # Save trained AI
+    # =============================================
+    # SAVE THE O AGENT
+    # =============================================
+
     with open(
         "q_table.pkl",
         "wb"
     ) as file:
 
         pickle.dump(
-            agent.q_table,
+            agent_o.q_table,
             file
         )
 
     print("\nTraining completed!")
 
     print(
-        "Number of learned states:",
-        len(agent.q_table)
+        "O Agent learned states:",
+        len(agent_o.q_table)
     )
 
-    return agent
+    print(
+        "Final exploration rate:",
+        agent_o.exploration_rate
+    )
+
+    return agent_o
 
 
 if __name__ == "__main__":
 
-    train_agent(100000)
-
+    train_agent(200000)

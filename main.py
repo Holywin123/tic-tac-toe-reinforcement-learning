@@ -1,4 +1,3 @@
-
 from game import TicTacToe
 from train import train_agent
 
@@ -7,7 +6,7 @@ def play_game(agent):
 
     game = TicTacToe()
 
-    # Turn off exploration during actual gameplay
+    # Disable exploration during the real game
     agent.exploration_rate = 0
 
     print("\n======================")
@@ -29,9 +28,9 @@ def play_game(agent):
 
         game.display()
 
-        # -------------------------
+        # =========================================
         # HUMAN MOVE
-        # -------------------------
+        # =========================================
 
         available = game.available_actions()
 
@@ -69,7 +68,10 @@ def play_game(agent):
 
             game.display()
 
-            print("Congratulations! You win!")
+            print(
+                "Congratulations! "
+                "You win!"
+            )
 
             break
 
@@ -81,9 +83,9 @@ def play_game(agent):
 
             break
 
-        # -------------------------
+        # =========================================
         # AI MOVE
-        # -------------------------
+        # =========================================
 
         state = game.get_state()
 
@@ -125,13 +127,24 @@ def play_game(agent):
 
 if __name__ == "__main__":
 
-    print("\nTraining AI...")
-    print("Please wait...\n")
+    print("\n======================")
+    print("   TRAINING AI")
+    print("======================")
 
-    agent = train_agent(100000)
+    print(
+        "\nTraining for 200,000 games..."
+    )
 
-    print("\nAI is ready!")
+    print(
+        "Please wait...\n"
+    )
+
+    agent = train_agent(
+        200000
+    )
+
+    print(
+        "\nAI is ready!"
+    )
 
     play_game(agent)
-
-
