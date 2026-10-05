@@ -1,9 +1,11 @@
+
 from game import TicTacToe
 from q_learning import QLearningAgent
 import random
+import pickle
 
 
-def train_agent(episodes=50000):
+def train_agent(episodes=100000):
 
     agent = QLearningAgent()
 
@@ -15,7 +17,10 @@ def train_agent(episodes=50000):
 
         while True:
 
-            # AI chooses a move
+            # -------------------------
+            # AI MOVE
+            # -------------------------
+
             available = game.available_actions()
 
             action = agent.choose_action(
@@ -23,22 +28,21 @@ def train_agent(episodes=50000):
                 available
             )
 
-            game.make_move(action, "O")
+            game.make_move(
+                action,
+                "O"
+            )
 
             result = game.check_winner()
 
             # AI wins
             if result == "O":
 
-                reward = 10
-
-                next_state = game.get_state()
-
                 agent.update(
                     state,
                     action,
-                    reward,
-                    next_state,
+                    10,
+                    game.get_state(),
                     []
                 )
 
@@ -47,21 +51,20 @@ def train_agent(episodes=50000):
             # Draw
             if result == "Draw":
 
-                reward = 1
-
-                next_state = game.get_state()
-
                 agent.update(
                     state,
                     action,
-                    reward,
-                    next_state,
+                    5,
+                    game.get_state(),
                     []
                 )
 
                 break
 
-            # Random opponent
+            # -------------------------
+            # RANDOM OPPONENT MOVE
+            # -------------------------
+
             opponent_actions = game.available_actions()
 
             opponent_action = random.choice(
@@ -78,15 +81,11 @@ def train_agent(episodes=50000):
             # Opponent wins
             if result == "X":
 
-                reward = -10
-
-                next_state = game.get_state()
-
                 agent.update(
                     state,
                     action,
-                    reward,
-                    next_state,
+                    -10,
+                    game.get_state(),
                     []
                 )
 
@@ -95,21 +94,20 @@ def train_agent(episodes=50000):
             # Draw
             if result == "Draw":
 
-                reward = 1
-
-                next_state = game.get_state()
-
                 agent.update(
                     state,
                     action,
-                    reward,
-                    next_state,
+                    5,
+                    game.get_state(),
                     []
                 )
 
                 break
 
-            # Continue learning
+            # -------------------------
+            # CONTINUE LEARNING
+            # -------------------------
+
             next_state = game.get_state()
 
             next_available = game.available_actions()
@@ -126,7 +124,26 @@ def train_agent(episodes=50000):
 
         agent.decay_exploration()
 
-    print("Training completed!")
+        # Show progress
+        if (episode + 1) % 10000 == 0:
+
+            print(
+                f"Training episode: "
+                f"{episode + 1}/{episodes}"
+            )
+
+    # Save trained AI
+    with open(
+        "q_table.pkl",
+        "wb"
+    ) as file:
+
+        pickle.dump(
+            agent.q_table,
+            file
+        )
+
+    print("\nTraining completed!")
 
     print(
         "Number of learned states:",
@@ -138,4 +155,5 @@ def train_agent(episodes=50000):
 
 if __name__ == "__main__":
 
-    train_agent(50000)
+    train_agent(100000)
+

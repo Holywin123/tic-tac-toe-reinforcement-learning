@@ -1,3 +1,4 @@
+
 from game import TicTacToe
 from train import train_agent
 
@@ -5,6 +6,9 @@ from train import train_agent
 def play_game(agent):
 
     game = TicTacToe()
+
+    # Turn off exploration during actual gameplay
+    agent.exploration_rate = 0
 
     print("\n======================")
     print("     TIC-TAC-TOE")
@@ -121,10 +125,13 @@ def play_game(agent):
 
 if __name__ == "__main__":
 
-    print("Training AI...")
+    print("\nTraining AI...")
+    print("Please wait...\n")
 
-    agent = train_agent(50000)
+    agent = train_agent(100000)
 
     print("\nAI is ready!")
 
     play_game(agent)
+
+

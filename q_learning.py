@@ -1,3 +1,4 @@
+
 import random
 
 
@@ -8,7 +9,7 @@ class QLearningAgent:
         learning_rate=0.1,
         discount_factor=0.9,
         exploration_rate=1.0,
-        exploration_decay=0.995
+        exploration_decay=0.9995
     ):
 
         self.q_table = {}
@@ -27,17 +28,26 @@ class QLearningAgent:
 
     def choose_action(self, state, available_actions):
 
+        q_values = self.get_q_values(state)
+
+        # Exploration
         if random.random() < self.exploration_rate:
             return random.choice(available_actions)
 
-        q_values = self.get_q_values(state)
-
-        best_action = max(
-            available_actions,
-            key=lambda action: q_values[action]
+        # Exploitation
+        max_q = max(
+            q_values[action]
+            for action in available_actions
         )
 
-        return best_action
+        best_actions = [
+            action
+            for action in available_actions
+            if q_values[action] == max_q
+        ]
+
+        # Randomly choose between equally good actions
+        return random.choice(best_actions)
 
     def update(
         self,
@@ -55,8 +65,8 @@ class QLearningAgent:
         if available_actions:
 
             next_q = max(
-                self.get_q_values(next_state)[a]
-                for a in available_actions
+                self.get_q_values(next_state)[action]
+                for action in available_actions
             )
 
         else:
@@ -73,3 +83,11 @@ class QLearningAgent:
     def decay_exploration(self):
 
         self.exploration_rate *= self.exploration_decay
+
+        # Do not allow exploration to become zero
+        self.exploration_rate = max(
+            0.05,
+            self.exploration_rate
+        )
+
+
